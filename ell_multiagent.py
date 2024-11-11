@@ -6,6 +6,8 @@ from typing import List
 import ell
 from ell import Message
 
+from pydantic import BaseModel, Field
+
 MODEL = "llama3.2:1b"
 ell.init(store="./logdir")
 
@@ -15,28 +17,29 @@ client = OpenAI(
 )
 ell.config.register_model(MODEL, client)
 
-
 class Agent:
     def __init__(self, role) -> None:
         self.role = role
 
-    
-@ell.simple(model=MODEL, temperature=0.3)
-def act(thymio_id: str, conversation_history: List[Message]) -> List[Message]:
-    """
-    You are controlling a tymio bot. Take control of the robot,
-    taking into account inputs from the other bots.
-    """
-    return [
-        ell.user(f"What is your next move?"),
-    ] + conversation_history
+
+@ell.complex(model=MODEL, temperature=0.3)
+def act(thymio_id: str, conversation_history: List[Message]) -> Message:
+    sys_prompt = ell.system(f"""
+    You are {thymio_id}, a thymio bot. You have two thymio bot
+    friends with you. Your goal is to get out of a maze.
+    Given the conversation history, you must return
+    your thoughts on the situation and your mood on a scale from 0 to 10
+    """)
+    return [sys_prompt] + conversation_history
 
 # TODO Past a certain context length, summarize
 class Assembly:
     def __init__(self, model=MODEL) -> None:
         self.agents = []
         self.model = model
-        self.conversation_hist = []
+        self.conversation_hist = [
+            ell.user("Fellow bots, we arrived at an intersection! Should we go left or right?")
+        ]
 
     def launch_round(self):
         for agent in self.agents:
