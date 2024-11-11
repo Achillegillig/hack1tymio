@@ -24,18 +24,26 @@ th = Thymio(use_tcp=use_tcp,
 
 th.connect()
 
+# wait 2-3 sec until robots are known
+time.sleep(4)
+
 node_id = th.first_node()
 
-print(th.nodes())
-
+for node in th.nodes():
+    print(node)
 # print(node_id)
 
 print(th[node_id]["prox.horizontal"])
 
-if th[node_id]["button.center"]:
-    print("button.center")
-    done = True
 
-# for i in range(0, 7):
-#     th[id]["motor.left.target"] = 50
-#     time.sleep(0.5)
+nodelist = list(th.nodes())
+while True:
+    th[nodelist[0]]["motor.left.target"] = 50
+    th[nodelist[1]]["motor.left.target"] = 50
+
+    if th[node_id]["button.center"]:
+        th[nodelist[0]]["motor.left.target"] = 0
+        th[nodelist[1]]["motor.left.target"] = 0
+
+        break
+    time.sleep(0.5)

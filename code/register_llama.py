@@ -11,4 +11,4 @@ client = OpenAI(
 )
 
 
-# ell.config.register_model(MODEL, client)
+ell.config.register_model(MODEL, client)

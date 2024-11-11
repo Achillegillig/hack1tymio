@@ -1,6 +1,0 @@
- module load singularity
- singularity shell --nv --bind /data/extra/agillig/llama:/mnt/llama ollama_latest.sif
- ollama create llamario -f /homes_unix/agillig/projects/hack1tymio/code/modelfile_mario
- ollama serve &
- ollama run llamario 
- 
