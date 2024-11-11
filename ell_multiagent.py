@@ -8,7 +8,7 @@ from ell import Message
 
 from pydantic import BaseModel, Field
 
-MODEL = "llama3.2:1b"
+MODEL = "llama3.2:3b"
 ell.init(store="./logdir")
 
 client = OpenAI(
