@@ -24,10 +24,17 @@ th = Thymio(use_tcp=use_tcp,
 
 th.connect()
 
-id = th.first_node()
-print(id)
+node_id = th.first_node()
 
-print(th[id]["prox.horizontal"])
+print(th.nodes())
+
+# print(node_id)
+
+print(th[node_id]["prox.horizontal"])
+
+if th[node_id]["button.center"]:
+    print("button.center")
+    done = True
 
 # for i in range(0, 7):
 #     th[id]["motor.left.target"] = 50
