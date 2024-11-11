@@ -7,6 +7,7 @@ import ell
 from ell import Message
 
 MODEL = "llama3.2:1b"
+ell.init(store="./logdir")
 
 client = OpenAI(
 	base_url = "http://localhost:11434/v1",
@@ -23,11 +24,11 @@ class Agent:
 @ell.simple(model=MODEL, temperature=0.3)
 def act(thymio_id: str, conversation_history: List[Message]) -> List[Message]:
     """
-    You are controlling a tymio bot. take control of the robot,
+    You are controlling a tymio bot. Take control of the robot,
     taking into account inputs from the other bots.
     """
     return [
-        ell.user(f"Thymio {thymio_id}, what is your next move?"),
+        ell.user(f"What is your next move?"),
     ] + conversation_history
 
 # TODO Past a certain context length, summarize
