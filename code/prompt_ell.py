@@ -19,7 +19,7 @@ client = OpenAI(
 from pydantic import BaseModel, Field
 
 class TymioCommand(BaseModel):
-    command: str = Field(description="Command for the Thymio robot."
+    command: str = Field(description="""Command for the Thymio robot.
                          
                         #  The command can be one of the following:
                         #  - 'forward': Move the robot forward.
