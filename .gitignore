@@ -2,3 +2,5 @@ private/
 __pycache__/
 logdir/
 log/
+.idea/
+.env

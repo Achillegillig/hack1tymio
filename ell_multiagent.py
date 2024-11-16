@@ -66,6 +66,7 @@ if __name__ == "__main__":
         agent = Agent(thymio_ids[i])
         assembly.agents.append(agent)
 
+
     assembly.launch_round()
     assembly.launch_round()
     print(assembly.conversation_hist)
