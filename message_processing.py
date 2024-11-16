@@ -11,7 +11,7 @@ def process_response_item(response: Message):
     seps = ["COMMUNICATE", "THOUGHTS", "BOT_COMMAND"]
     message = dict()
     
-    message["THOUGHT"] = response.text.split("COMMUNICATE" + ":")[0]
+    message["THOUGHTS"] = response.text.split("COMMUNICATE" + ":")[0]
     #message["MOOD"] = response.text.split("MOOD" + ": ")[1].split("COMMUNICATE" + ": ")[0]
     message["COMMUNICATE"] = response.text.split("COMMUNICATE" + ":")[1].split("BOT_COMMAND" + ":")[0]
     message["BOT_COMMAND"] =  response.text.split("BOT_COMMAND"+ ":")[1]
