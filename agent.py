@@ -17,6 +17,7 @@ class Agent:
         self.id = id
         self.pos = self.init_pos()
         self.conversation_history = []
+        self.MODEL = "llama3.2:3b"
 
     @ell.complex(model=MODEL, temperature=0.3)
     def act(self, conversation_history: List[Message]) -> Message:
@@ -39,3 +40,6 @@ class Agent:
     
     def random_init_pos(self):
         return np.random.randint(0, 10, size=(2), dtype=int) # quadrillage 10x10
+    
+    def set_model(self, model):
+        self.MODEL = model
