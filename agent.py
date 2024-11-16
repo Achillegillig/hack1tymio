@@ -25,8 +25,9 @@ class Agent:
         self.conversation_history = []
         self.immobilised  = False
         self.goal_achieved = False
+        self.traits = None
 
-    @ell.complex(model=MODEL, temperature=0.3)
+    @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
     def act(self, conversation_history: List[Message]) -> Message:
         self.sys_prompt = ell.system(f"""
         You are {self.name}, a thymio bot who is {self.role}. You have two thymio bot
@@ -36,7 +37,7 @@ class Agent:
         write what you want to communicate to the other LLMs beginning by 
         COMMUNICATE: 
         THOUGHTS:
-        BOT COMMAND: 
+        BOT_COMMAND: 
         """)
         self.conversation_history.append(ell.system(f"""{self.name}, you are in position {self.pos}
                                         your current traits / their evolution since last round: {self.traits}
@@ -50,7 +51,7 @@ class Agent:
     def detectNeighbour(self, matrice):
         x = self.pos[0]
         y = self.pos[1]
-        self.neighbour = set()
+        self.neighbour = dict()
         
         p_neighbourg_x = np.array([x-1, x+1])
         p_neighbourg_y = np.array([y-1, y+1])
