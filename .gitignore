@@ -4,3 +4,4 @@ logdir/
 log/
 .idea/
 .env
+thymio_venv/
