@@ -22,6 +22,7 @@ class Agent:
 
     @ell.complex(model=MODEL, temperature=0.3)
     def act(self, conversation_history: List[Message]) -> Message:
+        #supervisor.trigger_event(pos)
         sys_prompt = ell.system(f"""
         You are {self.name}, a thymio bot who is {self.role}. You have two thymio bot
         friends with you. Your goal is to get out of a maze.
