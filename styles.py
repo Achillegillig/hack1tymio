@@ -5,13 +5,13 @@ styles = """<style>
     .chat-container {
         display: flex;
         flex-direction: column;
-        gap: 10px;
     }
     .message-bubble {
         border-radius: 10px;
         padding: 10px;
         max-width: 70%;
         word-wrap: break-word;
+        margin: 5px;
     }
     .agent1 {
         background-color: #417BBD;
