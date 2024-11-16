@@ -31,7 +31,7 @@ You should only respond once in the format as described below:
 RESPONSE FORMAT:
 THOUGHTS: Based on the information I listed above, in 50 words, do reasoning about what the next action should be.
 MESSAGE: The message you want to send to all your allies.
-ACTION: Your next action.
+ACTION: Your next action. Your allowed moves are the options listed in POSSIBLE_MOVE.
 """
 
 

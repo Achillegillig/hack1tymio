@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 import os
 import dotenv
 dotenv.load_dotenv()
+from initial_prompt import PROMPT_ALLY
 
 # MODEL="llama3.2:3b"
 #MODEL = "Qwen/Qwen2.5-72B-Instruct-AWQ"
@@ -31,7 +32,7 @@ class Agent:
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
     def act(self, conversation_history: list[Message]) -> Message:
         self.update_pos_message()
-        sys_prompt = ""
+        sys_prompt = PROMPT_ALLY
         current_information = ell.system(f"""{self.name}, you are in position {self.pos}
         your current traits / their evolution since last round: {self.traits}
         information on other bots nearby: {self.neighbour}. {self.event_message}""")

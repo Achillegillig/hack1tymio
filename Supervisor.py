@@ -41,11 +41,14 @@ class Supervisor:
         # Get all available positions
         available_positions = [(i, j) for i in range(self.size[0]) for j in range(self.size[1])]
         self.goal_pos_mat = np.zeros((10,10))
+        self.bot_map = np.zeros((10,10))
+        # self.object_map = metttre les 4 couleurs sur le plateau
         
         # Create agents
         for i in range(n_agents):
             # Assign a random position
             pos = random.choice(available_positions)
+            self.bot_map[pos] = 1 
             available_positions.remove(pos)
 
             # Assign random goal position
@@ -56,6 +59,7 @@ class Supervisor:
             agent = Agent(None, i, f'Thymio{i+1}', pos, goal_pos)
             self.agents.append(agent)
             self.goal_pos_mat[goal_pos] = agent.color
+
 
     def _launch_discussion(self, round=2):
         # For each round
@@ -103,4 +107,32 @@ class Supervisor:
             print('Discussion over. Press any key to continue...')
             input()
 
+    def update_status(self):
+        for agent in self.agents :
+            event = self.goal_pos_mat[agent.pos]
+            if event == agent.color:
+                agent.goal_achieved = True
+            elif event == "trap":
+                agent.immobilised = True
+                self.immobilisation[agent.name] = 3
+            # agent.event_message(f"""You reached a cell with a trap. You canno't move for the next 3 turns""")
+            if event != False : 
+                agent.trigger_event = event
+
+            x = agent.pos[0]
+            y = self.pos[1]
+            agent.neighbour = dict()
+            
+            p_neighbourg_x = np.array([x-1, x+1])
+            p_neighbourg_y = np.array([y-1, y+1])
+
+            for x_pos in p_neighbourg_x :
+                for y_pos in p_neighbourg_y:
+                    if y>= 0 and y <10 and y>= 0 and y <10 : # 10 est une valeur arbitraire en fonction de la taille du quadrillage
+                        if self.object_map[x_pos, y_pos] != False:
+                            agent.vision[np.array([x_pos, y_pos])] = "object"
+                        elif self.bot_map[x_pos, y_pos] != False:
+                            agent.vision[ np.array([x_pos, y_pos])] ="tymio"
+                        else : 
+                            agent.vision[ np.array([x_pos, y_pos])] ="empty"
 
