@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 MODEL = "llama3.2:3b"
 
 class Agent:
-    def __init__(self, id, name, role) -> None:
+    def __init__(self, id, name, role=None) -> None:
         self.role = role
         self.name = name
         self.id = id
