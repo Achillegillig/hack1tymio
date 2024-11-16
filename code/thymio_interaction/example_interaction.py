@@ -117,6 +117,7 @@ def play(node_id):
 
 
     # TODO Take a decision from buffered values
+    # TODO cooldown intersection
     while not intersection(node_id, ground_left, ground_right):
         ground_left = th[node_id]["prox.ground.delta"][0]
         ground_right = th[node_id]["prox.ground.delta"][1]
@@ -148,9 +149,14 @@ if __name__ == "__main__":
         for node_id in th.nodes():
             print("Playing ", node_id)
             play(node_id)
+
+            th[node_id]["motor.left.target"] = 0
+            th[node_id]["motor.right.target"] = 0
             time.sleep(2)
-            # print("Rotating ", node_id)
-            # rotation_order = request_llm(node_id)
-            # rotate(node_id, rotation_order)
+            print("Rotating ", node_id)
+            rotation_order = request_llm(node_id)
+            rotate(node_id, rotation_order)
+            th[node_id]["motor.left.target"] = 0
+            th[node_id]["motor.right.target"] = 0
 
     th.disconnect()
