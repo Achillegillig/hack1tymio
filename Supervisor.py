@@ -3,6 +3,8 @@ from styles import styles
 import streamlit as st
 import random
 import ell
+import numpy as np
+from message_processing import process_response_item
 
 
 class Supervisor:
@@ -38,6 +40,7 @@ class Supervisor:
     def _init_agents(self, n_agents):
         # Get all available positions
         available_positions = [(i, j) for i in range(self.size[0]) for j in range(self.size[1])]
+        self.goal_pos_mat = np.zeros((10,10))
         
         # Create agents
         for i in range(n_agents):
@@ -52,6 +55,7 @@ class Supervisor:
             # Create agent
             agent = Agent(None, i, f'Thymio{i+1}', pos, goal_pos)
             self.agents.append(agent)
+            self.goal_pos_mat[goal_pos] = agent.color
 
     def _launch_discussion(self, round=2):
         # For each round
@@ -79,7 +83,10 @@ class Supervisor:
                 """, unsafe_allow_html=True)
 
                 # Add the message to the conversation history
-                self.conversation_hist.append(ell.user([f'{agent.name}:', message]))
+                response = ell.user([f'{agent.name}:', message])
+                hist = process_response_item(response)["COMMUNICATE"]
+                #self.conversation_hist.append(ell.user([f'{agent.name}:', message]))
+                self.conversation_hist.append(ell.user([f'{agent.name}:', hist]))
     
     def _run(self):
         # Start the game
@@ -95,4 +102,5 @@ class Supervisor:
             self._launch_discussion()
             print('Discussion over. Press any key to continue...')
             input()
+
 

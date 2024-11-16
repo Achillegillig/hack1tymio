@@ -11,7 +11,6 @@ import os
 import dotenv
 dotenv.load_dotenv()
 
-
 # MODEL="llama3.2:3b"
 #MODEL = "Qwen/Qwen2.5-72B-Instruct-AWQ"
 #MODEL = os.getenv('MODEL')
@@ -27,14 +26,18 @@ class Agent:
         self.immobilised  = False
         self.goal_achieved = False
         self.traits = None
+        self.event_message =""
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
     def act(self, conversation_history: list[Message]) -> Message:
-        sys_prompt = ell.system(f"""{self.name}, you are in position {self.pos}
-        your current traits / their evolution since last round: {self.traits}
-        information on other bots nearby: """)
-        return [sys_prompt] + conversation_history
+        self.update_pos_message()
 
+        sys_prompt = ""
+        current_information = ell.system(f"""{self.name}, you are in position {self.pos}
+        your current traits / their evolution since last round: {self.traits}
+        information on other bots nearby: {self.neighbour}. {self.event_message}""")
+        # supervisor.trigger(agent)
+        return [sys_prompt] + conversation_history + current_information
     
     def detectNeighbour(self, matrice):
         x = self.pos[0]
@@ -53,10 +56,19 @@ class Agent:
     def isgoalAchieved(self):
         if self.pos == self.goal_pos:
             self.goal_achieved = True
+            self.event_message("You reached your goal position, you must not move anymore")
 
-    def explore_environement(self, x, y, matrice):
-        pass
-        
+    def explore_environement(self, matrice):
+        event = matrice[self.pos[0], self.pos[1]]
+        if event == self.color:
+            self.goal_achieved = True
+            self.event_message("You found your tresor, you must not move anymore")
+        elif  event in ["blue", "green", "red", "yellow"]:
+            self.event_message(f"""You found the tresor of one of your ally. The treasor is of color {color}""")
+        elif event == "trap":
+            self.immobilised = True
+            self.event_message(f"""You reached a cell with a trap. You canno't move for the next 3 turns""")
+
     def update_pos_message(self, done=True):
         command = get_response_item(self.sys_prompt)
         if done==True :
