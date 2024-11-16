@@ -13,6 +13,7 @@ print(serial_port)
 use_tcp = False
 host = None
 tcp_port = None
+speed = 100
 
 th = Thymio(use_tcp=use_tcp,
                     serial_port=serial_port,
@@ -43,22 +44,10 @@ for node in th.nodes():
 
 def line_behavior(node_id):
     global done, prox_right, prox_left, line_moving
-    max_steer = 20
-    speed = 50
-    thresh = 50
+    max_steer = 10
 
     ground_left = th[node_id]["prox.ground.delta"][0]
     ground_right = th[node_id]["prox.ground.delta"][1]
-
-    # Check if intersection has been reached
-    delta = max(abs(prox_left - ground_left), abs(prox_right - ground_right))
-    print("delta", delta)
-    if delta > thresh:
-        print("Intersection detected !")
-        time.sleep(0.5)
-        th[node_id]["motor.left.target"] = 0
-        th[node_id]["motor.right.target"] = 0
-        line_moving = False
 
     # Set motor speed and correction
     tmp = max_steer * ground_left - max_steer * ground_right
@@ -66,8 +55,7 @@ def line_behavior(node_id):
     th[node_id]["motor.left.target"] = speed + steerL
     th[node_id]["motor.right.target"] = speed - steerL
 
-    print(ground_left, ground_right)
-    prox_left, prox_right = ground_left, ground_right
+    # print(ground_left, ground_right)
 
     # Exit with center button at any time
     if th[node_id]["button.center"]:
@@ -79,23 +67,61 @@ def line_behavior(node_id):
 def request_llm():
     return "RIGHT"
 
-def rotate(rotation_order):
+def rotate(node_id, rotation_order="RIGHT"):
     if rotation_order == "RIGHT":
-        th[node_id]["motor.left.target"] = 50
-        th[node_id]["motor.right.target"] = -50
+        th[node_id]["motor.left.target"] = speed
+        th[node_id]["motor.right.target"] = -speed
     else:
-        th[node_id]["motor.left.target"] = -50
-        th[node_id]["motor.right.target"] = 50
+        th[node_id]["motor.left.target"] = -speed
+        th[node_id]["motor.right.target"] = speed
 
     stop_rotation = False
-    time.sleep(3)
-    # while not stop_rotation:
-    #     print()
-    #     test_rotation =
-    #     time.sleep(0.5)
-    th[node_id]["motor.left.target"] = 50
-    th[node_id]["motor.right.target"] = 50
-    time.sleep(1)
+    time.sleep(2.20)
+    print("Rotation done !")
+
+    th[node_id]["motor.left.target"] = speed
+    th[node_id]["motor.right.target"] = speed
+
+def intersection(node_id, prox_left, prox_right):
+
+    ground_left = th[node_id]["prox.ground.delta"][0]
+    ground_right = th[node_id]["prox.ground.delta"][1]
+
+    thresh = 300
+    # Check if intersection has been reached
+    delta = max(prox_left - ground_left , prox_right - ground_right)
+    print("delta", delta , "ground_left", ground_left, "prox_left", prox_left, "ground_right", ground_right, "prox_right", prox_right)
+
+    prox_left, prox_right = ground_left, ground_right
+
+    if delta > thresh:
+        print("Intersection detected !")
+        # th.set_variable_observer(node_id, rotate) # a changer rihgt/left
+
+        th[node_id]["motor.left.target"] = speed
+        th[node_id]["motor.right.target"] = speed
+        time.sleep(1.9)
+        return True
+    return False
+
+
+def play(node_id):
+
+    # line_behavior(node_id)
+    th.set_variable_observer(node_id, line_behavior)
+
+    ground_left = th[node_id]["prox.ground.delta"][0]
+    ground_right = th[node_id]["prox.ground.delta"][1]
+
+    while not intersection(node_id, ground_left, ground_right):
+        ground_left = th[node_id]["prox.ground.delta"][0]
+        ground_right = th[node_id]["prox.ground.delta"][1]
+        time.sleep(0.1)
+
+    th.set_variable_observer(node_id, lambda node_id: None)
+    rotation_order = request_llm()
+    rotate(node_id, rotation_order)
+
 
 
 
@@ -107,19 +133,35 @@ if __name__ == "__main__":
     prox_left = th[node_id]["prox.ground.delta"][0]
     prox_right = th[node_id]["prox.ground.delta"][1]
 
+    # th.set_variable_observer(node_id, play)
+    compteur = 0
     while not done:
-        try:
-            th.set_variable_observer(node_id, line_behavior)
-            while line_moving:
-                time.sleep(0.1)
-            th.set_variable_observer(node_id, lambda node_id: None)
-            rotation_order = request_llm()
-            rotate(rotation_order)
-            line_moving = True
-        except Exception as e:
-            print("Exception caught!", e)
-            th[node_id]["motor.left.target"] = 0
-            th[node_id]["motor.right.target"] = 0
-            done = True
+        time.sleep(0.1)
+
+        for node_id in th.nodes():
+
+
+            print("compteur", compteur)
+            for node_id in th.nodes():
+                play(node_id)
+
+            #         th.set_variable_observer(node_id, line_behavior)
+            #     while line_moving:
+            #         time.sleep(0.1)
+            #     th.set_variable_observer(node_id, lambda node_id: None)
+            #     rotation_order = request_llm()
+            #     rotate(node_id, rotation_order)
+            #     line_moving = True
+            # except KeyboardInterrupt:
+            #     print("KeyboardInterrupt detected. Stopping Thymio...")
+            #     th[node_id]["motor.left.target"] = 0
+            #     th[node_id]["motor.right.target"] = 0
+            #     done = True
+            #     time.sleep(0.5)
+            # except Exception as e:
+            #     print("Exception caught!", e)
+            #     th[node_id]["motor.left.target"] = 0
+            #     th[node_id]["motor.right.target"] = 0
+            #     done = True
 
     th.disconnect()
