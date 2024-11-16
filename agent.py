@@ -19,7 +19,7 @@ class Agent:
         self.conversation_history = []
         self.MODEL = "llama3.2:3b"
 
-    @ell.complex(model=MODEL, temperature=0.3)
+    @ell.complex(model=self.MODEL, temperature=0.3)
     def act(self, conversation_history: List[Message]) -> Message:
         sys_prompt = ell.system(f"""
         You are {self.name}, a thymio bot who is {self.role}. You have two thymio bot
