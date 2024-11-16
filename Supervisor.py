@@ -1,4 +1,4 @@
-from agent_plafrim import Agent
+from agent import Agent
 from styles import styles
 import streamlit as st
 import random

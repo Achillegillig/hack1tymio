@@ -2,8 +2,7 @@ import streamlit as st
 from openai import OpenAI
 import ell
 from ell import Message
-from agent_plafrim import Agent
-from assembly_plafrim import Assembly
+from agent import Agent
 from Supervisor import Supervisor
 import os
 import dotenv
