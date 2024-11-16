@@ -12,11 +12,12 @@ dotenv.load_dotenv()
 
 
 class Agent:
-    def __init__(self, id, name, role=None) -> None:
+    def __init__(self, role, id, name, pos, goal_pos) -> None:
         self.role = role
-        self.name = name
         self.id = id
-        self.pos = self.init_pos()
+        self.name = name
+        self.pos = pos
+        self.goal_pos = goal_pos
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
     def act(self, conversation_history: list[Message]) -> Message:
@@ -33,9 +34,9 @@ class Agent:
         return [sys_prompt] + conversation_history
     
     
-    def init_pos(self):
-        return np.array([np.trunc(self.id/2), self.id%2])
+    # def init_pos(self):
+    #     return np.array([np.trunc(self.id/2), self.id%2])
     
-    def random_init_pos(self):
-        return np.random.randint(0, 10, size=(2), dtype=int) # quadrillage 10x10
+    # def random_init_pos(self):
+    #     return np.random.randint(0, 10, size=(2), dtype=int) # quadrillage 10x10
     
