@@ -29,6 +29,10 @@ def act(thymio_id: str, conversation_history: List[Message]) -> Message:
     friends with you. Your goal is to get out of a maze.
     Given the conversation history, you must return
     your thoughts on the situation and your mood on a scale from 0 to 10
+    write what you want to communicate to the other LLMs beginning by 
+    COMMUNICATE: 
+    THOUGHTS:
+    BOT COMMAND: 
     """)
     return [sys_prompt] + conversation_history
 
@@ -42,10 +46,12 @@ class Assembly:
         ]
 
     def launch_round(self):
-        for agent in self.agents:
+        for i, agent in enumerate(self.agents):
+            if i == 0:
+                initi
             print(agent.role)
             message = act(agent.role, self.conversation_hist)
-            print(message)
+            print(message.text)
             self.conversation_hist.append(ell.user(message))
             print()
 
