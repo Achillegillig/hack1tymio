@@ -8,10 +8,7 @@ from ell import Message
 
 from pydantic import BaseModel, Field
 
-MODEL = "llama3.2:3b"
-
-def set_model(self, model):
-        MODEL = model
+MODEL="llama3.2:3b"
 
 
 class Agent:
