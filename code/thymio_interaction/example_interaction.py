@@ -40,18 +40,9 @@ node_id = th.first_node()
 for node in th.nodes():
     print(node)
 
-done = False
-
-prox_left = th[node_id]["prox.ground.delta"][0]
-prox_right = th[node_id]["prox.ground.delta"][1]
-
-vars = th.variables(node_id)
-
-
-print(th.variables(node_id))
 
 def line_behavior(node_id):
-    global done, prox_right, prox_left
+    global done, prox_right, prox_left, line_moving
     max_steer = 20
     speed = 50
     thresh = 50
@@ -59,47 +50,71 @@ def line_behavior(node_id):
     ground_left = th[node_id]["prox.ground.delta"][0]
     ground_right = th[node_id]["prox.ground.delta"][1]
 
+    # Check if intersection has been reached
     delta = max(abs(prox_left - ground_left), abs(prox_right - ground_right))
     print("delta", delta)
     if delta > thresh:
+        time.sleep(0.5)
         th[node_id]["motor.left.target"] = 0
         th[node_id]["motor.right.target"] = 0
-        done = True
-        return
-
-    tmp = max_steer * ground_left - max_steer * ground_right
-    steerL = tmp // 50
+        line_moving = False
 
     # Set motor speed and correction
+    tmp = max_steer * ground_left - max_steer * ground_right
+    steerL = tmp // 50
     th[node_id]["motor.left.target"] = speed + steerL
     th[node_id]["motor.right.target"] = speed - steerL
 
-    acc = th[node_id]["acc"]
     print(ground_left, ground_right)
     prox_left, prox_right = ground_left, ground_right
-    #print("acc", acc)
+
+    # Exit with center button at any time
     if th[node_id]["button.center"]:
         print("button.center")
         th[node_id]["motor.left.target"] = 0
         th[node_id]["motor.right.target"] = 0
         done = True
 
+def request_llm():
+    return "RIGHT"
 
-th.set_variable_observer(node_id, line_behavior)
+def rotate(rotation_order):
+    if rotation_order == "RIGHT":
+        th[node_id]["motor.left.target"] = 50
+        th[node_id]["motor.right.target"] = -50
+    else:
+        th[node_id]["motor.left.target"] = -50
+        th[node_id]["motor.right.target"] = 50
 
-while not done:
-    time.sleep(0.1)
-th.disconnect()
+    stop_rotation = False
+    time.sleep(3)
+    # while not stop_rotation:
+    #     print()
+    #     test_rotation =
+    #     time.sleep(0.5)
+    th[node_id]["motor.left.target"] = 50
+    th[node_id]["motor.right.target"] = 50
+
+    th[node_id]["motor.left.target"] = 0
+    th[node_id]["motor.right.target"] = 0
 
 
-# while True:
-#     th[node_id]["motor.left.target"] = 50
-#     th[node_id]["motor.right.target"] = 50
-#
-#
-#     if th[node_id]["button.center"]:
-#         th[node_id]["motor.left.target"] = 0
-#         th[node_id]["motor.right.target"] = 0
-#
-#         break
-#     time.sleep(0.5)
+if __name__ == "__main__":
+
+    # Set global variables
+    done = False
+    line_moving = True
+    prox_left = th[node_id]["prox.ground.delta"][0]
+    prox_right = th[node_id]["prox.ground.delta"][1]
+
+    # TODO Try catch for connection error
+    while not done:
+
+        # th.set_variable_observer(node_id, line_behavior)
+        # while line_moving:
+        #     time.sleep(0.1)
+        # th.set_variable_observer(node_id, lambda node_id: None)
+        rotation_order = request_llm()
+        rotate(rotation_order)
+
+    th.disconnect()
