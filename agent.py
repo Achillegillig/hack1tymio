@@ -10,6 +10,10 @@ from pydantic import BaseModel, Field
 
 MODEL = "llama3.2:3b"
 
+def set_model(self, model):
+        MODEL = model
+
+
 class Agent:
     def __init__(self, id, name, role=None) -> None:
         self.role = role
@@ -19,7 +23,7 @@ class Agent:
         self.conversation_history = []
         self.MODEL = "llama3.2:3b"
 
-    @ell.complex(model=self.MODEL, temperature=0.3)
+    @ell.complex(model=MODEL, temperature=0.3)
     def act(self, conversation_history: List[Message]) -> Message:
         sys_prompt = ell.system(f"""
         You are {self.name}, a thymio bot who is {self.role}. You have two thymio bot
@@ -41,5 +45,3 @@ class Agent:
     def random_init_pos(self):
         return np.random.randint(0, 10, size=(2), dtype=int) # quadrillage 10x10
     
-    def set_model(self, model):
-        self.MODEL = model
