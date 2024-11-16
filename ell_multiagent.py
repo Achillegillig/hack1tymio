@@ -55,6 +55,7 @@ if __name__ == "__main__":
         agent = Agent(f"tymio_{i}")
         assembly.agents.append(agent)
 
+
     assembly.launch_round()
     assembly.launch_round()
     print(assembly.conversation_hist)
