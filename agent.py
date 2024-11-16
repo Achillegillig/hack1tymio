@@ -17,36 +17,24 @@ dotenv.load_dotenv()
 #MODEL = os.getenv('MODEL')
 
 class Agent:
-    def __init__(self, id, name, color=None,  role=None) -> None:
+    def __init__(self, role, id, name, pos, goal_pos, color=None) -> None:
         self.role = role
-        self.name = name
         self.id = id
-        self.pos = self.init_pos()
-        self.conversation_history = []
+        self.name = name
+        self.pos = pos
+        self.goal_pos = goal_pos
+        self.color = color
         self.immobilised  = False
         self.goal_achieved = False
         self.traits = None
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
-    def act(self, conversation_history: List[Message]) -> Message:
-        self.sys_prompt = ell.system(f"""
-        You are {self.name}, a thymio bot who is {self.role}. You have two thymio bot
-        friends with you. Your goal is to get out of a maze. 
-        Given the conversation history, you must return
-        your thoughts on the situation and your mood on a scale from 0 to 10
-        write what you want to communicate to the other LLMs beginning by 
-        COMMUNICATE: 
-        THOUGHTS:
-        BOT_COMMAND: 
-        """)
-        self.conversation_history.append(ell.system(f"""{self.name}, you are in position {self.pos}
-                                        your current traits / their evolution since last round: {self.traits}
+    def act(self, conversation_history: list[Message]) -> Message:
+        sys_prompt = ell.system(f"""{self.name}, you are in position {self.pos}
+        your current traits / their evolution since last round: {self.traits}
+        information on other bots nearby: """)
+        return [sys_prompt] + conversation_history
 
-                                        information on other bots nearby: """))
-        
-                                        # {supervisor.trigger_event(pos)}
-        self.conversation_history.append(conversation_history)
-        return [self.sys_prompt] + self.conversation_history
     
     def detectNeighbour(self, matrice):
         x = self.pos[0]
@@ -63,7 +51,7 @@ class Agent:
                         self.neighbour[matrice[x_pos, y_pos]]= np.array([x_pos, y_pos])
 
     def isgoalAchieved(self):
-        if self.pos == self.final_pos :
+        if self.pos == self.goal_pos:
             self.goal_achieved = True
 
     def explore_environement(self, x, y, matrice):
@@ -87,9 +75,9 @@ class Agent:
             self.pos_message = f""""Vous n'avez pas réussit à bouger et êtes toujours à la position {self.pos}"""
         
     
-    def init_pos(self):
-        return np.array([np.trunc(self.id/2), self.id%2])
+    # def init_pos(self):
+    #     return np.array([np.trunc(self.id/2), self.id%2])
     
-    def random_init_pos(self):
-        return np.random.randint(0, 10, size=(2), dtype=int) # quadrillage 10x10
+    # def random_init_pos(self):
+    #     return np.random.randint(0, 10, size=(2), dtype=int) # quadrillage 10x10
     
