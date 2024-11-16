@@ -14,14 +14,14 @@ class Assembly:
         for i, agent in enumerate(self.agents):
             if i == 0:
                 self.conversation_hist.append(ell.user(f"{agent.name}, you are the first to communicate!"))
-                
-            message = agent.act(agent.name, self.conversation_hist)
+                print(self.conversation_hist)
+            message = agent.act(self.conversation_hist)
             message = split_response(message, ["COMMUNICATE", "THOUGHTS", "BOT_COMMAND"])
 
-            print(f'{agent.name}:', message.THOUGHTS)
-            self.conversation_hist.append(ell.system)
+            print(message)
             self.conversation_hist.append(ell.user([f'{agent.name}:', message]))
 
-    def init_pos(self, List[Agent]) -> None:
-        for agent in self.agents:
-            agent.pos = agent.random_init_pos()
+    # def init_pos(self, Lis) -> None:
+        # for agent in self.agents:
+        #     agent.pos = agent.random_init_pos()
+        # pass
