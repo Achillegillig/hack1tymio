@@ -1,5 +1,5 @@
 pydantic
 ollama
-ell
+ell-ai
 
 thymiodirect
