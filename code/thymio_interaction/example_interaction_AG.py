@@ -5,6 +5,8 @@ from thymiodirect.thymio_serial_ports import ThymioSerialPort
 import time
 import os
 
+import asyncio
+
 thymio_serial_ports = ThymioSerialPort.get_ports()
 serial_port = thymio_serial_ports[0].device
 
@@ -41,6 +43,10 @@ node_id = th.first_node()
 for node in th.nodes():
     print(node)
 
+def stop(node_id):
+    th[node_id]["motor.left.target"] = 0
+    th[node_id]["motor.right.target"] = 0
+
 
 def line_behavior(node_id):
     global done, prox_right, prox_left, line_moving
@@ -51,10 +57,9 @@ def line_behavior(node_id):
 
     # Set motor speed and correction
     tmp = max_steer * ground_left - max_steer * ground_right
-    steerL = tmp // speed
+    steerL = tmp // 50
     th[node_id]["motor.left.target"] = speed + steerL
     th[node_id]["motor.right.target"] = speed - steerL
-    print("Motor left", th[node_id]["motor.left.target"], "Motor right", th[node_id]["motor.right.target"] , "steerL", steerL)
 
     # print(ground_left, ground_right)
 
@@ -110,53 +115,79 @@ def intersection(node_id, prox_left, prox_right):
 def play(node_id):
     # line_behavior(node_id)
     th.set_variable_observer(node_id, line_behavior)
-    print("Playing ", node_id)
 
     ground_left = th[node_id]["prox.ground.delta"][0]
     ground_right = th[node_id]["prox.ground.delta"][1]
 
-
     # TODO Take a decision from buffered values
-    # TODO cooldown intersection
     while not intersection(node_id, ground_left, ground_right):
         ground_left = th[node_id]["prox.ground.delta"][0]
         ground_right = th[node_id]["prox.ground.delta"][1]
         time.sleep(0.1)
 
     th.set_variable_observer(node_id, lambda node_id: None)
-    # rotation_order = request_llm(node_id)
-    # rotate(node_id, rotation_order)
+    rotation_order = request_llm(node_id)
+    rotate(node_id, rotation_order)
+
+#######ach
+async def forward(node_id):
+    global timers, done
+    done = False #cursed
+    th.set_variable_observer(node_id, line_behavior)
+
+    if done:
+        return False
+
+    ground_left = th[node_id]["prox.ground.delta"][0]
+    ground_right = th[node_id]["prox.ground.delta"][1]
+
+    while not intersection(node_id, ground_left, ground_right):
+        ground_left = th[node_id]["prox.ground.delta"][0]
+        ground_right = th[node_id]["prox.ground.delta"][1]
+        await asyncio.sleep(0.1)  # Yield control back to the event loop
+
+    if intersection(node_id, ground_left, ground_right):
+        th.set_variable_observer(node_id, lambda node_id: None)
+        th[node_id]["motor.left.target"] = 0
+        th[node_id]["motor.right.target"] = 0
+        return True
+    else:
+        line_behavior(node_id)
+        return False
+#########
 
 from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
+
+executor = ThreadPoolExecutor(max_workers=5)
+async def main():
+    # Line following
+    # with Pool(len(th.nodes())) as p:
+    #     p.map(play, th.nodes())
+
+    # Once all nodes have been reached, request and apply rotation
+    while True:
+        forwards = [forward(node_id) for node_id in th.nodes()]
+
+        # Wait until any of the forward functions return True
+        if any(await asyncio.gather(*forwards)):
+            break
+        await asyncio.sleep(0.1)
+
+    for i, node_id in enumerate(th.nodes()):
+        if not await forwards[i]:
+            continue
+        print('REQUESTING ROTATION ORDER')
+        rotation_order = request_llm(node_id)
+        time.sleep(2)
+        print(f'ROTATION ORDER: {rotation_order}')
+        rotate(node_id, rotation_order)
+        # rotation_order = request_llm(node_id)
+        # rotate(node_id, rotation_order)
+
+    th.disconnect()
 
 
 if __name__ == "__main__":
-
-
-    # Set global variables
-    done = False
-    line_moving = True
-    prox_left = th[node_id]["prox.ground.delta"][0]
-    prox_right = th[node_id]["prox.ground.delta"][1]
-
-    # th.set_variable_observer(node_id, play)
-    compteur = 0
-    while not done:
-        #time.sleep(0.1)
-
-
-        # Once all nodes have been reached, request and apply rotation
-        for node_id in th.nodes():
-            print("Playing ", node_id)
-            play(node_id)
-
-            th[node_id]["motor.left.target"] = 0
-            th[node_id]["motor.right.target"] = 0
-            time.sleep(2)
-            print("Rotating ", node_id)
-            rotation_order = request_llm(node_id)
-            rotate(node_id, rotation_order)
-            th[node_id]["motor.left.target"] = 0
-            th[node_id]["motor.right.target"] = 0
-
-    th.disconnect()
+    # Run the main function
+    asyncio.run(forward())
