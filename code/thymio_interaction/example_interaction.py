@@ -34,7 +34,7 @@ th.on_comm_error = on_comm_error
 th.connect()
 
 # wait 2-3 sec until robots are known
-time.sleep(4)
+time.sleep(2)
 
 node_id = th.first_node()
 for node in th.nodes():
@@ -54,6 +54,7 @@ def line_behavior(node_id):
     delta = max(abs(prox_left - ground_left), abs(prox_right - ground_right))
     print("delta", delta)
     if delta > thresh:
+        print("Intersection detected !")
         time.sleep(0.5)
         th[node_id]["motor.left.target"] = 0
         th[node_id]["motor.right.target"] = 0
@@ -94,9 +95,8 @@ def rotate(rotation_order):
     #     time.sleep(0.5)
     th[node_id]["motor.left.target"] = 50
     th[node_id]["motor.right.target"] = 50
+    time.sleep(1)
 
-    th[node_id]["motor.left.target"] = 0
-    th[node_id]["motor.right.target"] = 0
 
 
 if __name__ == "__main__":
@@ -107,14 +107,19 @@ if __name__ == "__main__":
     prox_left = th[node_id]["prox.ground.delta"][0]
     prox_right = th[node_id]["prox.ground.delta"][1]
 
-    # TODO Try catch for connection error
     while not done:
-
-        # th.set_variable_observer(node_id, line_behavior)
-        # while line_moving:
-        #     time.sleep(0.1)
-        # th.set_variable_observer(node_id, lambda node_id: None)
-        rotation_order = request_llm()
-        rotate(rotation_order)
+        try:
+            th.set_variable_observer(node_id, line_behavior)
+            while line_moving:
+                time.sleep(0.1)
+            th.set_variable_observer(node_id, lambda node_id: None)
+            rotation_order = request_llm()
+            rotate(rotation_order)
+            line_moving = True
+        except Exception as e:
+            print("Exception caught!", e)
+            th[node_id]["motor.left.target"] = 0
+            th[node_id]["motor.right.target"] = 0
+            done = True
 
     th.disconnect()
