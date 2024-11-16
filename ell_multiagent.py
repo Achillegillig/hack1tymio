@@ -48,11 +48,12 @@ class Assembly:
     def launch_round(self):
         for i, agent in enumerate(self.agents):
             if i == 0:
-                initi
+                self.conversation_hist.append(ell.user(f"{agent.role}, you are the first to communicate!"))
+                
             print(agent.role)
             message = act(agent.role, self.conversation_hist)
             print(message.text)
-            self.conversation_hist.append(ell.user(message))
+            self.conversation_hist.append(ell.user([f'{agent.role}:', message]))
             print()
 
 if __name__ == "__main__":
