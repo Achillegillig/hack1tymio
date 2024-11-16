@@ -21,7 +21,7 @@ class Agent:
     @ell.complex(model=MODEL, temperature=0.3)
     def act(self, thymio_id: str, conversation_history: List[Message]) -> Message:
         sys_prompt = ell.system(f"""
-        You are {thymio_id}, a thymio bot who is {self.role}. You have two thymio bot
+        You are {self.name}, a thymio bot who is {self.role}. You have two thymio bot
         friends with you. Your goal is to get out of a maze.
         Given the conversation history, you must return
         your thoughts on the situation and your mood on a scale from 0 to 10
@@ -30,7 +30,7 @@ class Agent:
         THOUGHTS:
         BOT COMMAND: 
         """)
-        return [sys_prompt] + conversation_history
+        return [sys_prompt] + self.conversation_history
     
     
     def init_pos(self):
