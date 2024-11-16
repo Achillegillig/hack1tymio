@@ -16,10 +16,10 @@ class Agent:
         self.name = name
         self.id = id
         self.pos = self.init_pos()
-        self.conversation_history = List[Message]
+        self.conversation_history = []
 
     @ell.complex(model=MODEL, temperature=0.3)
-    def act(self, thymio_id: str, conversation_history: List[Message]) -> Message:
+    def act(self, conversation_history: List[Message]) -> Message:
         sys_prompt = ell.system(f"""
         You are {self.name}, a thymio bot who is {self.role}. You have two thymio bot
         friends with you. Your goal is to get out of a maze.
@@ -30,6 +30,7 @@ class Agent:
         THOUGHTS:
         BOT COMMAND: 
         """)
+        self.conversation_history.append(conversation_history)
         return [sys_prompt] + self.conversation_history
     
     
