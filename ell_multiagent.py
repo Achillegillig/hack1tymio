@@ -31,8 +31,7 @@ def act(agent: Agent, conversation_history: List[Message]) -> Message:
     friends with you. Your goal is to get out of a maze. 
     The two other bots are nearby, ready to communicate.
     Given the conversation history, you must return
-    your thoughts on the situation and your mood on a scale from 0 to 10
-    write what you want to communicate to the other thymios beginning by "communicate".
+    your communication to the other bots, your thoughts on the situation and your mood on a scale from 0 to 10.
 
     Response format:
 
@@ -56,7 +55,7 @@ class Assembly:
                 
             message = act(agent.name, self.conversation_hist)
             print(f'{agent.name}:', message.text)
-            self.conversation_hist.append(ell.system)
+            self.conversation_hist.append(ell.system())
             self.conversation_hist.append(ell.user([f'{agent.name}:', message]))
             # print()
 
