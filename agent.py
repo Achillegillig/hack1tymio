@@ -13,24 +13,18 @@ dotenv.load_dotenv()
 
 
 # MODEL="llama3.2:3b"
-# MODEL = "Qwen/Qwen2.5-72B-Instruct-AWQ"
-MODEL = os.getenv('MODEL')
-
-# 
-
+#MODEL = "Qwen/Qwen2.5-72B-Instruct-AWQ"
+#MODEL = os.getenv('MODEL')
 
 class Agent:
-    def __init__(self, id, name, color, final_pos,  role=None) -> None:
+    def __init__(self, id, name, color=None,  role=None) -> None:
         self.role = role
         self.name = name
         self.id = id
         self.pos = self.init_pos()
         self.conversation_history = []
-        self.MODEL = "llama3.2:3b"
         self.immobilised  = False
         self.goal_achieved = False
-        self.color = color
-        self.final_pos = final_pos
 
     @ell.complex(model=MODEL, temperature=0.3)
     def act(self, conversation_history: List[Message]) -> Message:
@@ -74,19 +68,23 @@ class Agent:
     def explore_environement(self, x, y, matrice):
         pass
         
-
-    def update_pos_message(self):
+    def update_pos_message(self, done=True):
         command = get_response_item(self.sys_prompt)
-        if command == "GO_DOWN":
-            pass
-        elif command == "GO_UP":
-            pass
-        elif command == "GO_RIGHT":
-            pass
-        elif command == "GO_LEFT":
-             self.pos_message = f""""Vous avez bougé à la position {self.pos}"""
-        elif command == "STOP":
-            self.pos_message = f""""Vous êtes toujours à la position {self.pos}"""
+        if done==True :
+            if command == "GO_DOWN":
+                self.pos[1] = self.pos[1]-1
+            elif command == "GO_UP":
+                self.pos[1] = self.pos[1]+1
+            elif command == "GO_RIGHT":
+                self.pos[0] = self.pos[0]+1
+            elif command == "GO_LEFT":
+                self.pos[0] = self.pos[0]+1
+            self.pos_message = f""""Vous avez bougé à la position {self.pos}"""
+            if command == "STOP":
+                self.pos_message = f""""Vous êtes toujours à la position {self.pos}"""
+        else : 
+            self.pos_message = f""""Vous n'avez pas réussit à bouger et êtes toujours à la position {self.pos}"""
+        
     
     def init_pos(self):
         return np.array([np.trunc(self.id/2), self.id%2])
