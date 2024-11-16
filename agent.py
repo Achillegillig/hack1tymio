@@ -31,7 +31,6 @@ class Agent:
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
     def act(self, conversation_history: list[Message]) -> Message:
         self.update_pos_message()
-
         sys_prompt = ""
         current_information = ell.system(f"""{self.name}, you are in position {self.pos}
         your current traits / their evolution since last round: {self.traits}
