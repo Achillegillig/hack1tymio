@@ -7,9 +7,14 @@ import ell
 from ell import Message
 from message_processing import get_response_item
 from pydantic import BaseModel, Field
+import os
+import dotenv
+dotenv.load_dotenv()
+
 
 # MODEL="llama3.2:3b"
-MODEL = "Qwen/Qwen2.5-72B-Instruct-AWQ"
+# MODEL = "Qwen/Qwen2.5-72B-Instruct-AWQ"
+MODEL = os.getenv('MODEL')
 
 # 
 
@@ -43,6 +48,8 @@ class Agent:
                                         your current traits / their evolution since last round: {self.traits}
 
                                         information on other bots nearby: """))
+        
+                                        # {supervisor.trigger_event(pos)}
         self.conversation_history.append(conversation_history)
         return [self.sys_prompt] + self.conversation_history
     
