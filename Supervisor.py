@@ -95,47 +95,55 @@ class Supervisor:
             self.agents.append(agent)
 
     def _launch_discussion(self, round=1):
-        # For each round
-        for _ in range(round):
 
-            # For each agent
-            for i, agent in enumerate(self.agents):
+        directions = []
 
-                # If it's the first agent
-                if i == 0:
-                    self.conversation_hist.append(ell.user(f"{agent.name}, you are the first to communicate!"))
+        # For each agent
+        for i, agent in enumerate(self.agents):
 
-                # Generate the message
-                print("POS", agent.pos)
-                print("Allowed", agent.allowed_move)
-                message = agent.act(len(self.agents), self.conversation_hist)
-                extraction = process_response_item(message)
-                command = extraction["ACTION"]
-                new_pos = tuple(int(v) for v in re.findall(r'\d+', command))
-                self.bot_map[agent.pos] = False
-                self.bot_map[new_pos] = True
+            # If it's the first agent
+            if i == 0:
+                self.conversation_hist.append(ell.user(f"{agent.name}, you are the first to communicate!"))
+
+            # Generate the message
+            print("POS", agent.pos)
+            print("Allowed", agent.allowed_move)
+            message = agent.act(len(self.agents), self.conversation_hist)
+            extraction = process_response_item(message)
+            command = extraction["ACTION"]
+            new_pos = tuple(int(v) for v in re.findall(r'\d+', command))
+            self.bot_map[agent.pos] = False
+            self.bot_map[new_pos] = True
+            
+            # Calcul du mvt à envoyer au BOT
+            agent.orientation, relative_direction = get_move(agent.pos, new_pos, agent.orientation)
+            directions.append(relative_direction)
                 
-                # Calcul du mvt à envoyer au BOT
-                agent.orientation, relative_direction = get_move(agent.pos, new_pos)
-                agent.pos = new_pos
+            print("Direction", relative_direction)
+            agent.pos = new_pos
 
-                # Display the message
-                agent_class = f"agent{agent.id + 1}"
-                st.markdown(f"""
-                    <div class="chat-container">
-                        <div class="message-bubble {agent_class}">
-                            <div class="agent-name">{agent.name}</div>
-                            {message.content[-1].text}
-                        </div>
+            # Display the message
+            agent_class = f"agent{agent.id + 1}"
+            st.markdown(f"""
+                <div class="chat-container">
+                    <div class="message-bubble {agent_class}">
+                        <div class="agent-name">{agent.name}</div>
+                        {message.content[-1].text}
                     </div>
-                """, unsafe_allow_html=True)
+                </div>
+            """, unsafe_allow_html=True)
 
 
-                # Add the message to the conversation history
-                #response = ell.user([f'{agent.name}:', message])
-                hist = extraction["MESSAGE"]
-                self.conversation_hist.append(ell.user([f'{agent.name}:', hist]))
-    
+            # Add the message to the conversation history
+            #response = ell.user([f'{agent.name}:', message])
+            hist = extraction["MESSAGE"]
+            self.conversation_hist.append(ell.user([f'{agent.name}:', hist]))
+
+        with open("orders.txt", 'w+') as f:
+            for i, direction in enumerate(directions):
+                f.write(f'{direction}\n')
+
+
     def _run(self):
         # Start the game
         print('Run the game !')
