@@ -21,7 +21,8 @@ def init_thymio():
                         "prox.ground.delta"
                     },
                    )
-    th.connect(delay=2, progress=lambda : print("Connecting to Thymio..."))
+    th.connect(delay=3, progress=lambda : print("Connecting to Thymio..."))
+    time.sleep(4)
     for node in th.nodes():
         print(node)
     return th
@@ -127,9 +128,20 @@ class Supervisor:
             # Interpret in robot space
             print('Discussion over. Press any key to continue...')
             input()
+            # Init positions
+            for agent in self.agents:
+                #global prox_right, prox_left
+                #prox_right, prox_left = th[agent.node_id]["prox.ground.delta"]
+                self.play(agent.node_id)
+
             for agent in self.agents:
                 order_robot_space = "RIGHT"
                 node_id = agent.node_id
+
+                # Init sensor values
+                global prox_right, prox_left
+                prox_right, prox_left = th[agent.node_id]["prox.ground.delta"]
+
 
                 self.rotate(node_id, order_robot_space)
                 th[node_id]["motor.left.target"] = 0
@@ -209,6 +221,7 @@ def line_behavior(node_id, speed=100):
     th[node_id]["motor.left.target"] = speed + steerL
     th[node_id]["motor.right.target"] = speed - steerL
     print("Motor left", th[node_id]["motor.left.target"], "Motor right", th[node_id]["motor.right.target"] , "steerL", steerL)
+    prox_left, prox_right = th[node_id]["prox.ground.delta"]
 
 if __name__ == "__main__":
     s = Supervisor(n_agents=2, size=(10,10))
