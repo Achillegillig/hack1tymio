@@ -118,6 +118,7 @@ class Supervisor:
         for agent, node in zip(self.agents, th.nodes()):
             agent.link_thymio(node)
             print(f"Agent {agent.name} linked to node {node}")
+        global prox_right, prox_left
 
         # While the game is running
         while True:
@@ -130,8 +131,8 @@ class Supervisor:
             input()
             # Init positions
             for agent in self.agents:
-                #global prox_right, prox_left
-                #prox_right, prox_left = th[agent.node_id]["prox.ground.delta"]
+                print(f"Agent {agent.name}:{agent.node_id}, going to init node")
+                prox_right, prox_left = th[agent.node_id]["prox.ground.delta"]
                 self.play(agent.node_id)
 
             for agent in self.agents:
@@ -139,7 +140,6 @@ class Supervisor:
                 node_id = agent.node_id
 
                 # Init sensor values
-                global prox_right, prox_left
                 prox_right, prox_left = th[agent.node_id]["prox.ground.delta"]
 
 
@@ -148,7 +148,8 @@ class Supervisor:
                 th[node_id]["motor.right.target"] = 0
 
                 self.play(node_id)
-                time.sleep(3)
+                th[node_id]["motor.left.target"] = 0
+                th[node_id]["motor.right.target"] = 0
             
 
 
