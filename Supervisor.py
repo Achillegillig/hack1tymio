@@ -116,7 +116,7 @@ class Supervisor:
                 self.bot_map[new_pos] = True
                 
                 # Calcul du mvt à envoyer au BOT
-                agent.orientation, relative_direction = get_move(agent.pos, new_pos)
+                agent.orientation, relative_direction = get_move(agent.pos, new_pos, agent.orientation)
                 agent.pos = new_pos
 
                 # Display the message
