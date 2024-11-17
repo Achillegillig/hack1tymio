@@ -36,8 +36,8 @@ class Agent:
         self.orientation = "UP"
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
-    def act(self, n_agents, conversation_history: list[Message]) -> Message:
-        prompt = prompt_ally(self.name, n_agents, conversation_history, self.pos, self.vision, self.allowed_move)
+    def act(self, conversation_history: list[Message]) -> Message:
+        prompt = prompt_ally(self.name, self.color, conversation_history, self.pos, self.vision, self.allowed_move)
         sys_prompt = ell.system(prompt)
         return [sys_prompt] + conversation_history
 

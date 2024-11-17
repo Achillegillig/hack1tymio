@@ -108,7 +108,7 @@ class Supervisor:
             # Generate the message
             print("POS", agent.pos)
             print("Allowed", agent.allowed_move)
-            message = agent.act(len(self.agents), self.conversation_hist)
+            message = agent.act(self.conversation_hist)
             extraction = process_response_item(message)
             command = extraction["ACTION"]
             new_pos = tuple(int(v) for v in re.findall(r'\d+', command))
