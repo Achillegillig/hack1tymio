@@ -19,5 +19,5 @@ client = OpenAI(
 ell.config.register_model(os.getenv('MODEL'), client)
 
 # Create & Run the Supervisor
-supervisor = Supervisor(n_agents=5, size=(10, 10))
+supervisor = Supervisor(n_agents=2, size=(4, 4))
 

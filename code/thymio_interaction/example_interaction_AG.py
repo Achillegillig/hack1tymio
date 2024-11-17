@@ -43,6 +43,10 @@ node_id = th.first_node()
 for node in th.nodes():
     print(node)
 
+def stop(node_id):
+    th[node_id]["motor.left.target"] = 0
+    th[node_id]["motor.right.target"] = 0
+
 
 def line_behavior(node_id):
     global done, prox_right, prox_left, line_moving
@@ -126,66 +130,64 @@ def play(node_id):
     rotate(node_id, rotation_order)
 
 #######ach
-def forward(node_id):
+async def forward(node_id):
     global timers, done
-
+    done = False #cursed
     th.set_variable_observer(node_id, line_behavior)
 
     if done:
-        return
+        return False
+
     ground_left = th[node_id]["prox.ground.delta"][0]
     ground_right = th[node_id]["prox.ground.delta"][1]
-    while not intersection(node_id, ground_left, ground_right):  # Proceed if no timer or timer is done
+
+    while not intersection(node_id, ground_left, ground_right):
         ground_left = th[node_id]["prox.ground.delta"][0]
         ground_right = th[node_id]["prox.ground.delta"][1]
+        await asyncio.sleep(0.1)  # Yield control back to the event loop
 
     if intersection(node_id, ground_left, ground_right):
         th.set_variable_observer(node_id, lambda node_id: None)
+        th[node_id]["motor.left.target"] = 0
+        th[node_id]["motor.right.target"] = 0
         return True
     else:
         line_behavior(node_id)
+        return False
 #########
 
 from multiprocessing import Pool
 from concurrent.futures import ThreadPoolExecutor
 
 executor = ThreadPoolExecutor(max_workers=5)
+async def main():
+    # Line following
+    # with Pool(len(th.nodes())) as p:
+    #     p.map(play, th.nodes())
 
-if __name__ == "__main__":
+    # Once all nodes have been reached, request and apply rotation
+    while True:
+        forwards = [forward(node_id) for node_id in th.nodes()]
 
-    # Set global variables
-    done = False
-    line_moving = True
-    prox_left = th[node_id]["prox.ground.delta"][0]
-    prox_right = th[node_id]["prox.ground.delta"][1]
+        # Wait until any of the forward functions return True
+        if any(await asyncio.gather(*forwards)):
+            break
+        await asyncio.sleep(0.1)
 
-    # th.set_variable_observer(node_id, play)
-    compteur = 0
-    while not done:
-        time.sleep(0.1)
-
-        #Line following
-        # with Pool(len(th.nodes())) as p:
-        #     p.map(play, th.nodes())
-
-        # Once all nodes have been reached, request and apply rotation
-        forwards = []
-        for node_id in th.nodes():
-            forwards.append(forward(node_id))
-
-        while not any(forwards):
-            time.sleep(0.1)
-        for i, node_id in enumerate(th.nodes()):
-            if not forwards[i]:
-                continue
-            print('REQUESTING ROTATION ORDER')
-            rotation_order = request_llm(node_id)
-            print(f'ROTATION ORDER: {rotation_order}')
-            rotate(node_id, rotation_order)
-            # rotation_order = request_llm(node_id)
-            # rotate(node_id, rotation_order)
-
+    for i, node_id in enumerate(th.nodes()):
+        if not await forwards[i]:
+            continue
+        print('REQUESTING ROTATION ORDER')
+        rotation_order = request_llm(node_id)
+        time.sleep(2)
+        print(f'ROTATION ORDER: {rotation_order}')
+        rotate(node_id, rotation_order)
+        # rotation_order = request_llm(node_id)
+        # rotate(node_id, rotation_order)
 
     th.disconnect()
 
-#%%
+
+if __name__ == "__main__":
+    # Run the main function
+    asyncio.run(forward())

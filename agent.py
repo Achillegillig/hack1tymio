@@ -9,6 +9,8 @@ from message_processing import get_response_item
 from pydantic import BaseModel, Field
 import os
 import dotenv
+from prompt import prompt_ally
+from initial_prompt import initial_prompt
 dotenv.load_dotenv()
 
 
@@ -27,12 +29,15 @@ class Agent:
         self.immobilised  = False
         self.goal_achieved = False
         self.traits = None
+        self.vision = None
+        self.allowed_move = None
+        self.action = None
+        self.orientation = "UP"
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
-    def act(self, conversation_history: list[Message]) -> Message:
-        sys_prompt = ell.system(f"""{self.name}, you are in position {self.pos}
-        your current traits / their evolution since last round: {self.traits}
-        information on other bots nearby: """)
+    def act(self, n_agents, conversation_history: list[Message]) -> Message:
+        prompt = prompt_ally(self.name, n_agents, conversation_history, self.pos, self.vision, self.allowed_move)
+        sys_prompt = ell.system(prompt)
         return [sys_prompt] + conversation_history
 
     
