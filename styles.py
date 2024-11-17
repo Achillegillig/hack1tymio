@@ -1,47 +1,53 @@
-styles = """<style>
+styles = """
+    <style>
     body {
-        background-color: #ffffff;
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+    }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(10, 30px);
+        grid-template-rows: repeat(10, 30px);
+        gap: 2px;
+        margin-bottom: 20px;
+    }
+    .grid-item {
+        width: 30px;
+        height: 30px;
+        border: 1px solid black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .agent {
+        background-color: blue;
+    }
+    .treasure {
+        background-color: red;
     }
     .chat-container {
         display: flex;
         flex-direction: column;
+        gap: 10px;
     }
     .message-bubble {
         border-radius: 10px;
         padding: 10px;
         max-width: 70%;
         word-wrap: break-word;
-        margin: 5px;
     }
     .agent1 {
-        background-color: #417BBD;
+        background-color: #DCF8C6;
         align-self: flex-start;
-        color: white;
     }
     .agent2 {
-        background-color: #CA6363;
+        background-color: #FFD1D1;
         align-self: flex-end;
-        color: white;
-    }
-    .agent3 {
-        background-color: #A58F2F;
-        align-self: flex-start;
-        color: white;
-    }
-    .agent4 {
-        background-color: #719562;
-        align-self: flex-end;
-        color: white;
-    }
-    .agent5 {
-        background-color: #F3811C;
-        align-self: flex-start;
-        color: white;
     }
     .agent-name {
         font-weight: bold;
         margin-bottom: 5px;
-        color: white;
     }
-</style>
+    </style>
 """

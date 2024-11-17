@@ -3,11 +3,13 @@ from styles import styles
 import streamlit as st
 import random
 import ell
+import numpy as np
+from matplotlib import pyplot as plt
 
 
 class Supervisor:
     
-    def __init__(self, n_agents=5, size=(10, 10)) -> None:
+    def __init__(self, n_agents=2, size=(4, 4)) -> None:
         # Initialize the Supervisor
         self.agents = []
         self.treasures = []
@@ -95,4 +97,7 @@ class Supervisor:
             self._launch_discussion()
             print('Discussion over. Press any key to continue...')
             input()
+
+
+
 
