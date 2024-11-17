@@ -35,7 +35,7 @@ th.on_comm_error = on_comm_error
 th.connect()
 
 # wait 2-3 sec until robots are known
-time.sleep(2)
+time.sleep(5)
 
 node_id = th.first_node()
 for node in th.nodes():
@@ -65,19 +65,34 @@ def line_behavior(node_id):
         th[node_id]["motor.right.target"] = 0
         done = True
 
+import random
 def request_llm(node_id):
-    return "RIGHT"
+    #return "BACKWARD"
+    return random.choice(["RIGHT", "LEFT", "FORWARD", "BACKWARD"])
 
 def rotate(node_id, rotation_order="RIGHT"):
+    #rotation_time = 2.20
+    rotation_time = 2.30
     if rotation_order == "RIGHT":
         th[node_id]["motor.left.target"] = speed
         th[node_id]["motor.right.target"] = -speed
-    else:
+    elif rotation_order == "LEFT":
         th[node_id]["motor.left.target"] = -speed
         th[node_id]["motor.right.target"] = speed
+    elif rotation_order == "FORWARD":
+        th[node_id]["motor.left.target"] = speed
+        th[node_id]["motor.right.target"] = speed
+        rotation_time /= 4
+    elif rotation_order == "BACKWARD":
+        th[node_id]["motor.left.target"] = -speed
+        th[node_id]["motor.right.target"] = speed
+        rotation_time *= 2
+        # TODO : fine tune
+    else:
+        raise ValueError("Invalid rotation order")
 
     stop_rotation = False
-    time.sleep(2.20)
+    time.sleep(rotation_time)
     print("Rotation done !")
 
     th[node_id]["motor.left.target"] = speed
@@ -95,7 +110,6 @@ def intersection(node_id, prox_left, prox_right):
 
     if delta > thresh:
         print("Intersection detected !")
-        # th.set_variable_observer(node_id, rotate) # a changer rihgt/left
 
         # Avoid correction at intersection
         th[node_id]["motor.left.target"] = speed
