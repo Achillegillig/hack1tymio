@@ -32,6 +32,7 @@ class Agent:
         self.vision = None
         self.allowed_move = None
         self.action = None
+        self.orientation = "UP"
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
     def act(self, n_agents, conversation_history: list[Message]) -> Message:

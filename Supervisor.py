@@ -16,15 +16,31 @@ def process_response_item(response: Message):
     message["ACTION"] =  response.text.split("ACTION"+ ":")[1]
     return message
 
-def get_move(pos, new_pos):
+def get_move(pos, new_pos, agent_direction):
+    absolute_direction = ""
     if pos[0] == new_pos[0] and pos[1] == new_pos[1] + 1:
-        print("DOWN")
+        absolute_direction = "DOWN"
     elif pos[0] == new_pos[0] and pos[1] == new_pos[1] - 1:
-        print("UP")
+        absolute_direction = "UP"
     elif pos[0] == new_pos[0] + 1 and pos[1] == new_pos[1]:
-        print("LEFT")
+        absolute_direction = "LEFT"
     elif pos[0] == new_pos[0] - 1 and pos[1] == new_pos[1]:
-        print("RIGHT")
+        absolute_direction = "RIGHT"
+    else:
+        raise ValueError("Invalid move")
+    
+    MVT = ['UP', 'DOWN', 'LEFT', 'RIGHT']
+    relative_index = MVT.index(absolute_direction)
+
+    dico = {
+        "UP": ["UP", "DOWN", "LEFT", "RIGHT"],
+        "DOWN": ["DOWN", "UP", "RIGHT", "LEFT"],
+        "LEFT": ["RIGHT", "LEFT", "UP", "DOWN"],
+        "RIGHT": ["LEFT", "RIGHT", "DOWN", "UP"]
+    }
+    relative_direction = dico[agent_direction][relative_index]
+    return absolute_direction, relative_direction
+
 
 class Supervisor:
     
@@ -100,7 +116,7 @@ class Supervisor:
                 self.bot_map[new_pos] = True
                 
                 # Calcul du mvt à envoyer au BOT
-                get_move(agent.pos, new_pos)
+                agent.orientation, relative_direction = get_move(agent.pos, new_pos)
                 agent.pos = new_pos
 
                 # Display the message
