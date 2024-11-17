@@ -5,7 +5,26 @@ import random
 import ell
 import numpy as np
 from matplotlib import pyplot as plt
+import re
+from ell import Message
 
+
+def process_response_item(response: Message):
+    message = dict()
+    message["THOUGHTS"] = response.text.split("MESSAGE" + ":")[0]
+    message["MESSAGE"] = response.text.split("MESSAGE" + ":")[1].split("ACTION" + ":")[0]
+    message["ACTION"] =  response.text.split("ACTION"+ ":")[1]
+    return message
+
+def get_move(pos, new_pos):
+    if pos[0] == new_pos[0] and pos[1] == new_pos[1] + 1:
+        print("DOWN")
+    elif pos[0] == new_pos[0] and pos[1] == new_pos[1] - 1:
+        print("UP")
+    elif pos[0] == new_pos[0] + 1 and pos[1] == new_pos[1]:
+        print("LEFT")
+    elif pos[0] == new_pos[0] - 1 and pos[1] == new_pos[1]:
+        print("RIGHT")
 
 class Supervisor:
     
@@ -15,6 +34,8 @@ class Supervisor:
         self.treasures = []
         self.conversation_hist = []
         self.size = size
+        self.bot_map = np.full((10, 10), False)
+        self.object_map = np.full((10, 10), False)
 
         # Initialize the agents
         self._init_agents(n_agents)
@@ -24,6 +45,7 @@ class Supervisor:
 
         # Start the game
         self._run()
+
     
 
     def _display_infos(self):
@@ -45,6 +67,7 @@ class Supervisor:
         for i in range(n_agents):
             # Assign a random position
             pos = random.choice(available_positions)
+            self.bot_map[pos] = True 
             available_positions.remove(pos)
 
             # Assign random goal position
@@ -55,7 +78,7 @@ class Supervisor:
             agent = Agent(None, i, f'Thymio{i+1}', pos, goal_pos)
             self.agents.append(agent)
 
-    def _launch_discussion(self, round=2):
+    def _launch_discussion(self, round=1):
         # For each round
         for _ in range(round):
 
@@ -67,7 +90,18 @@ class Supervisor:
                     self.conversation_hist.append(ell.user(f"{agent.name}, you are the first to communicate!"))
 
                 # Generate the message
-                message = agent.act(self.conversation_hist)
+                print("POS", agent.pos)
+                print("Allowed", agent.allowed_move)
+                message = agent.act(len(self.agents), self.conversation_hist)
+                extraction = process_response_item(message)
+                command = extraction["ACTION"]
+                new_pos = tuple(int(v) for v in re.findall(r'\d+', command))
+                self.bot_map[agent.pos] = False
+                self.bot_map[new_pos] = True
+                
+                # Calcul du mvt à envoyer au BOT
+                get_move(agent.pos, new_pos)
+                agent.pos = new_pos
 
                 # Display the message
                 agent_class = f"agent{agent.id + 1}"
@@ -80,8 +114,11 @@ class Supervisor:
                     </div>
                 """, unsafe_allow_html=True)
 
+
                 # Add the message to the conversation history
-                self.conversation_hist.append(ell.user([f'{agent.name}:', message]))
+                #response = ell.user([f'{agent.name}:', message])
+                hist = extraction["MESSAGE"]
+                self.conversation_hist.append(ell.user([f'{agent.name}:', hist]))
     
     def _run(self):
         # Start the game
@@ -94,9 +131,52 @@ class Supervisor:
         # While the game is running
         while True:
             # Launch the discussion
+            self._update_agent_status()
             self._launch_discussion()
             print('Discussion over. Press any key to continue...')
             input()
+
+    def _update_agent_status(self):
+        for agent in self.agents :
+            agent.vision = {}
+            agent.allowed_move = []
+            event = self.object_map[agent.pos]
+            if event :
+                if event == "trap":
+                    agent.status = "immobilised"
+                    self.immobilisation[agent.name] = 3
+                    agent.vision[agent.pos] = "trap"
+                elif event == agent.color: # L'agent a trouvé son trésor
+                    agent.goal_achieved = True
+                    agent.vision[agent.pos] = event + " treasure"
+                else : # L'agent a trouvé le trésor d'un autre
+                    agent.vision[agent.pos] = event + " treasure"
+
+            x = agent.pos[0]
+            y = agent.pos[1]
+            agent.neighbour = dict()
+
+            # Compute all available moves
+            available_moves = []
+            if x - 1 >= 0:
+                available_moves.append((x - 1, y))
+            if x + 1 < self.size[0]:
+                available_moves.append((x + 1, y))
+            if y - 1 >= 0:
+                available_moves.append((x, y - 1))
+            if y + 1 < self.size[1]:
+                available_moves.append((x, y + 1))
+
+            # Update the vision of the agent
+            for (x_pos, y_pos) in available_moves:
+                if self.object_map[x_pos, y_pos] != False:
+                    agent.vision[(x_pos, y_pos)] = "object"
+                    agent.allowed_move.append((x_pos, y_pos))
+                elif self.bot_map[(x_pos, y_pos)] != False:
+                    agent.vision[(x_pos, y_pos)] ="tymio"
+                else : 
+                    agent.vision[(x_pos, y_pos)] ="empty"
+                    agent.allowed_move.append((x_pos, y_pos))
 
 
 
