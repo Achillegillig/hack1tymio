@@ -32,6 +32,7 @@ class Agent:
         self.vision = None
         self.allowed_move = None
         self.action = None
+        self.direction = None
         self.orientation = "UP"
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
@@ -78,6 +79,9 @@ class Agent:
                 self.pos_message = f""""Vous êtes toujours à la position {self.pos}"""
         else : 
             self.pos_message = f""""Vous n'avez pas réussit à bouger et êtes toujours à la position {self.pos}"""
+
+    def link_thymio(self, node_id):
+        self.node_id = node_id
         
     
     # def init_pos(self):
