@@ -37,6 +37,7 @@ Messages: {conversation_history}
 Position: {pos}
 Vision: {vision}
 Triggered_event :
+Status : 
 Actions: {actions} <step> Source: assistant
 Destination: user
 """

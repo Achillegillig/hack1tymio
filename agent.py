@@ -28,16 +28,26 @@ class Agent:
         self.goal_achieved = False
         self.traits = None
         self.event_message =""
+        self.status = "free to move"
 
     @ell.complex(model=os.getenv('MODEL'), temperature=0.3)
     def act(self, conversation_history: list[Message]) -> Message:
         self.update_pos_message()
         sys_prompt = PROMPT_ALLY
-        current_information = ell.system(f"""{self.name}, you are in position {self.pos}
-        your current traits / their evolution since last round: {self.traits}
-        information on other bots nearby: {self.neighbour}. {self.event_message}""")
+        current_information = ell.system(self.update_current_information())
         # supervisor.trigger(agent)
         return [sys_prompt] + conversation_history + current_information
+    
+    def update_current_information(self):
+         info =  f"""Position: {self.pos}
+                Vision: {self.vision}
+                Triggered_event : {self.event_triggered}
+                Status : {self.status}
+                Action : (x, y) or None
+                <step> Source: assistant
+                Destination: user"""
+         return info
+         
     
     def detectNeighbour(self, matrice):
         x = self.pos[0]

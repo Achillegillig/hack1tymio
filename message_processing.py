@@ -8,13 +8,13 @@ def get_response_item(response: Message, item: str) -> str:
     return response.text.split(item + ": ")[1].split("\n")[0]
 
 def process_response_item(response: Message):
-    seps = ["COMMUNICATE", "THOUGHTS", "BOT_COMMAND"]
+    seps = ["THOUGHTS", "MESSAGE" "ACTION"]
     message = dict()
     
-    message["THOUGHTS"] = response.text.split("COMMUNICATE" + ":")[0]
+    message["THOUGHTS"] = response.text.split("MESSAGE" + ":")[0]
     #message["MOOD"] = response.text.split("MOOD" + ": ")[1].split("COMMUNICATE" + ": ")[0]
-    message["COMMUNICATE"] = response.text.split("COMMUNICATE" + ":")[1].split("BOT_COMMAND" + ":")[0]
-    message["BOT_COMMAND"] =  response.text.split("BOT_COMMAND"+ ":")[1]
+    message["MESSAGE"] = response.text.split("MESSAGE" + ":")[1].split("ACTION" + ":")[0]
+    message["ACTION"] =  response.text.split("ACTION"+ ":")[1]
     return message
 
 

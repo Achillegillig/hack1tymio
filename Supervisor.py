@@ -9,7 +9,7 @@ from message_processing import process_response_item
 
 class Supervisor:
     
-    def __init__(self, n_agents=5, size=(10, 10)) -> None:
+    def __init__(self, n_agents=5, size=(10, 10), colors = ["blue", "green", "red","yellow", "purple"]) -> None:
         # Initialize the Supervisor
         self.agents = []
         self.treasures = []
@@ -40,15 +40,16 @@ class Supervisor:
     def _init_agents(self, n_agents):
         # Get all available positions
         available_positions = [(i, j) for i in range(self.size[0]) for j in range(self.size[1])]
-        self.goal_pos_mat = np.zeros((10,10))
-        self.bot_map = np.zeros((10,10))
+        #self.goal_pos_mat = np.zeros((10,10))
+        self.bot_map = np.full((10, 10), False)
+        self.object_map = np.full((10, 10), False)
         # self.object_map = metttre les 4 couleurs sur le plateau
         
         # Create agents
         for i in range(n_agents):
             # Assign a random position
             pos = random.choice(available_positions)
-            self.bot_map[pos] = 1 
+            self.bot_map[pos] = True 
             available_positions.remove(pos)
 
             # Assign random goal position
@@ -56,14 +57,21 @@ class Supervisor:
             available_positions.remove(goal_pos)
 
             # Create agent
-            agent = Agent(None, i, f'Thymio{i+1}', pos, goal_pos)
+            agent = Agent(None, i, f'Thymio{i+1}', pos, goal_pos, color = self.colors[i])
             self.agents.append(agent)
-            self.goal_pos_mat[goal_pos] = agent.color
+            if agent.color != "purple" : # Le violet est le traître et n'a pas d'objectif
+                self.object_map[goal_pos] = agent.color
+        
+        for i in range(3): # Ajout des pièges
+            trap_pos = random.choice(available_positions)
+            available_positions.remove(trap_pos)
+            self.object_map[trap_pos] = "trap"
 
 
     def _launch_discussion(self, round=2):
         # For each round
         for _ in range(round):
+            self.update_agent_status()
 
             # For each agent
             for i, agent in enumerate(self.agents):
@@ -73,6 +81,11 @@ class Supervisor:
                     self.conversation_hist.append(ell.user(f"{agent.name}, you are the first to communicate!"))
 
                 # Generate the message
+                if agent.name in self.immobilisation :
+                    self.immobilisation[agent.name] = self.immobilisation[agent.name] -1
+                    if self.immobilisation[agent.name] == 0:
+                        del self.immobilisation[agent.name]
+                        agent.status = "free to move"
                 message = agent.act(self.conversation_hist)
 
                 # Display the message
@@ -88,7 +101,7 @@ class Supervisor:
 
                 # Add the message to the conversation history
                 response = ell.user([f'{agent.name}:', message])
-                hist = process_response_item(response)["COMMUNICATE"]
+                hist = process_response_item(response)["MESSAGE"]
                 #self.conversation_hist.append(ell.user([f'{agent.name}:', message]))
                 self.conversation_hist.append(ell.user([f'{agent.name}:', hist]))
     
@@ -107,17 +120,23 @@ class Supervisor:
             print('Discussion over. Press any key to continue...')
             input()
 
-    def update_status(self):
+    def update_agent_status(self):
         for agent in self.agents :
-            event = self.goal_pos_mat[agent.pos]
-            if event == agent.color:
-                agent.goal_achieved = True
-            elif event == "trap":
-                agent.immobilised = True
-                self.immobilisation[agent.name] = 3
+            event = self.object_map[agent.pos]
+            if event :
+                if event == "trap":
+                    agent.status = "immobilised"
+                    self.immobilisation[agent.name] = 3
+                    agent.trigger_event = "trap"
+                elif event == agent.color: # L'agent a trouvé son trésor
+                    agent.goal_achieved = True
+                    agent.trigger_event = event + " treasure"
+                else : # L'agent a trouvé le trésor d'un autre
+                    agent.trigger_event = event + " treasure"
             # agent.event_message(f"""You reached a cell with a trap. You canno't move for the next 3 turns""")
-            if event != False : 
-                agent.trigger_event = event
+            else :
+                agent.trigger_event = "None"
+
 
             x = agent.pos[0]
             y = self.pos[1]
