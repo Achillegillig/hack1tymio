@@ -12,8 +12,13 @@ from thymiodirect import Thymio
 from thymiodirect.thymio_serial_ports import ThymioSerialPort
 import asyncio
 
+import os
+
 prox_left = None
 prox_right = None
+
+if os.path.exists("orders.txt"):
+    os.remove("orders.txt")
 
 
 def init_thymio():
