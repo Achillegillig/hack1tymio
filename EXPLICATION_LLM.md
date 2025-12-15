@@ -4,6 +4,12 @@
 
 Ce projet utilise un **LLM (Large Language Model)** pour contrôler des robots Thymio dans un jeu de stratégie tour par tour. Les robots (agents) utilisent le LLM pour prendre des décisions, communiquer entre eux et naviguer dans une grille pour trouver des trésors.
 
+**Note** : Le projet contient deux systèmes d'orchestration :
+- **Supervisor** (utilisé dans `app.py` avec interface Streamlit) - système principal
+- **Assembly** (dans `assembly.py`) - système alternatif plus simple
+
+Cette documentation se concentre principalement sur le système Supervisor, mais les deux utilisent les mêmes principes de base.
+
 ## Architecture du système
 
 ### 1. Bibliothèque principale : ell-ai
@@ -147,7 +153,11 @@ def _launch_discussion(self, round=1):
 
 ### Parsing structuré
 
-Le module `message_processing.py` contient les fonctions pour extraire les informations des réponses du LLM :
+Le projet utilise deux systèmes de parsing selon le contexte :
+
+#### Système 1 : Supervisor (utilisé dans app.py)
+
+Fonction `process_response_item()` définie dans `Supervisor.py` :
 
 ```python
 def process_response_item(response: Message):
@@ -157,6 +167,22 @@ def process_response_item(response: Message):
     message["ACTION"] = response.text.split("ACTION:")[1]
     return message
 ```
+
+Ce système utilise le format **MESSAGE/ACTION** comme défini dans `prompt.py`.
+
+#### Système 2 : Assembly (système alternatif)
+
+Fonction `split_response()` dans `message_processing.py` :
+
+```python
+def split_response(response: Message, items: List) -> dict:
+    out = {}
+    for item in items:
+        out[item] = get_response_item(response, item)
+    return out
+```
+
+Ce système utilise le format **COMMUNICATE/BOT_COMMAND** et est plus flexible car il peut extraire n'importe quelle liste de champs.
 
 ### Conversion en commandes robot
 
